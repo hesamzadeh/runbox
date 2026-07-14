@@ -1,0 +1,5 @@
+/home/mohammad/Documents/runbox/build/CMakeFiles/RunBox.dir
+/home/mohammad/Documents/runbox/build/CMakeFiles/edit_cache.dir
+/home/mohammad/Documents/runbox/build/CMakeFiles/rebuild_cache.dir
+/home/mohammad/Documents/runbox/build/CMakeFiles/RunBox_autogen_timestamp_deps.dir
+/home/mohammad/Documents/runbox/build/CMakeFiles/RunBox_autogen.dir
