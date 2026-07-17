@@ -17,7 +17,9 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QTimer>
-
+#include <QWheelEvent>
+#include <QCompleter>
+#include <QStringListModel>
 
 class History
 {
@@ -231,39 +233,61 @@ bool executeCommand(QString cmd)
 }
 
 
-
-
-
 class RunLineEdit : public QLineEdit
 {
 public:
 
     History *history;
 
-
     RunLineEdit(History *h)
-        :
-          history(h)
+        : history(h)
     {
     }
-
 
 protected:
 
     void keyPressEvent(QKeyEvent *event) override
     {
+        if(event->key() == Qt::Key_Tab)
+        {
+            if(completer())
+            {
+                completer()->complete();
+            }
+
+            return;
+        }
         if(event->key() == Qt::Key_Up)
         {
             setText(history->previous());
+            selectAll();
         }
         else if(event->key() == Qt::Key_Down)
         {
             setText(history->next());
+            selectAll();
         }
         else
         {
             QLineEdit::keyPressEvent(event);
         }
+    }
+
+    void wheelEvent(QWheelEvent *event) override
+    {
+        if(event->angleDelta().y() > 0)
+        {
+            // Scroll up -> older command
+            setText(history->previous());
+        }
+        else if(event->angleDelta().y() < 0)
+        {
+            // Scroll down -> newer command
+            setText(history->next());
+        }
+
+        selectAll();
+        event->accept();
     }
 };
 
@@ -356,7 +380,32 @@ int main(int argc, char *argv[])
     input->setText(history.last());
     input->selectAll();
 
+    QStringList executables;
 
+    for(const QString &dir :
+        QProcessEnvironment::systemEnvironment()
+            .value("PATH")
+            .split(":"))
+    {
+        QDir d(dir);
+
+        for(const QFileInfo &file :
+            d.entryInfoList(QDir::Files | QDir::Executable))
+        {
+            executables << file.fileName();
+        }
+    }
+
+executables.removeDuplicates();
+executables.sort();
+
+auto *completer =
+    new QCompleter(executables, input);
+
+completer->setCaseSensitivity(Qt::CaseInsensitive);
+completer->setFilterMode(Qt::MatchStartsWith);
+
+input->setCompleter(completer);
 
     auto *inputLayout =
         new QHBoxLayout();
